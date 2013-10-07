@@ -3,7 +3,7 @@ import pyglet
 from pyglet.window import key
 from core import GameElement
 import sys
-from random import randrange
+from random import randrange, choice
 
 #### DO NOT TOUCH ####
 GAME_BOARD = None
@@ -53,7 +53,6 @@ class Wall(Obstacle):
 class Rock(Obstacle):
     IMAGE = "Rock"
 
-
 class Item(GameElement):
     SOLID = False
 
@@ -70,6 +69,20 @@ class Key(Item):
     name = "Key"
     IMAGE = "Key"
 
+class Chest(GameElement):
+    IMAGE = "Chest"
+    SOLID = True
+    contents = choice(["Blue Gem", "Green Gem", "Orange Gem", "Heart"])
+
+    def interact(self, player):
+        for item in player.inventory:
+            if type(item) == Key:
+                player.inventory.append(self.contents)
+                GAME_BOARD.draw_msg("You found a %s in the chest! You have %d items!" % (self.contents, len(player.inventory)))
+                break
+            else:
+                GAME_BOARD.draw_msg("You need a key to open this chest.")
+
 
 ####   End class definitions    ####
 
@@ -82,8 +95,6 @@ def initialize():
         (4, 2),
         (2, 4)
     ]
-
-
 
     rocks = []
 
@@ -112,6 +123,10 @@ def initialize():
     wall = Wall()
     GAME_BOARD.register(wall)
     GAME_BOARD.set_el(5, 6, wall)
+
+    chest = Chest()
+    GAME_BOARD.register(chest)
+    GAME_BOARD.set_el(6, 7, chest)
 
 #    GAME_BOARD.draw_msg("Jia Yi and Ava are amazing!")
 
