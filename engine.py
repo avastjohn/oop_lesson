@@ -167,8 +167,7 @@ class Board(object):
                     self.draw_active(el.sprite, x, y)
 
 
-class Obstacle(GameElement):
-    pass
+
 
 def update(dt):
     for el in update_list:
@@ -224,13 +223,13 @@ def run():
         handler = game.keyboard_handler
         def handler_wrapper(dt):
             handler()
-        pyglet.clock.schedule_interval(handler_wrapper, 1/10.0)
+        pyglet.clock.schedule_interval(handler_wrapper, 1/15.0)
     except AttributeError:
         print "No keyboard handler"
         pass
         
     # Set up the update clock
-    pyglet.clock.schedule_interval(update, 1/10.)
+    pyglet.clock.schedule_interval(update, 1/15.0)
     game.initialize()
     pyglet.app.run()
 
