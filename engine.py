@@ -4,8 +4,8 @@ import pyglet
 from pyglet.window import key
 from core import GameElement
 
-SCREEN_X = 800
-SCREEN_Y = 700
+SCREEN_X = 1200
+SCREEN_Y = 1000
 
 game_window = pyglet.window.Window(SCREEN_X, SCREEN_Y)
 
@@ -23,24 +23,47 @@ def setup_images():
     filenames = {
             "Wall": "Wall Block.png",
             "Block": "Plain Block.png",
+            "BrownBlock": "Brown Block.png",
+            "DirtBlock": "Dirt Block.png",
             "GrassBlock": "Grass Block.png",
             "StoneBlock": "Stone Block.png",
+            "WoodBlock": "Wood Block.png",
+            "WaterBlock": "Water Block.png",
+            "RampEast": "Ramp East.png",
+            "Ramp North": "Ramp North.png",
+            "Ramp South": "Ramp South.png",
+            "Ramp West": "Ramp West.png",
             "ShortTree": "Tree Short.png",
             "TallTree": "Tree Tall.png",
+            "UglyTree": "Tree Ugly.png",
             "Rock": "Rock.png",
-            "Chest": "Chest Closed.png",
+            "ChestClosed": "Chest Closed.png",
+            "ChestOpen": "Chest Open.png",
             "DoorClosed": "Door Tall Closed.png",
             "DoorOpen": "Door Tall Open.png",
+            "Window": "Window Tall.png",
             "BlueGem": "Gem Blue.png",
             "GreenGem": "Gem Green.png",
             "OrangeGem": "Gem Orange.png",
             "Heart": "Heart.png",
+            "Star": "Star.png",
             "Key": "Key.png",
+            "Axe": "Axe.png",
+            "Axe2": "Axe2.png",
+            "Boat": "Boat.png",
+            "DragonBoat": "Dragon Boat.png",
+            "DragonSailboat": "Dragon Sailboat.png",
+            "Dragon": "Dragon.png",
+            "Dragon2": "Dragon2.png",
+            "Dragon3": "Dragon3.png",
+            "Dragon4": "Dragon4.png",
+            "Dragon5": "Dragon5.png",
             "Boy": "Character Boy.png",
             "Cat": "Character Cat Girl.png",
             "Horns": "Character Horn Girl.png",
             "Girl": "Character Pink Girl.png",
-            "Princess": "Character Princess Girl.png"
+            "Princess": "Character Princess Girl.png",
+            "Enemy": "Enemy Bug.png"
             }
 
     for k,v in filenames.items():
@@ -67,17 +90,14 @@ class Board(object):
         self.offset_y = -SCREEN_Y/2 + board_height_px/2 + TILE_HEIGHT/4
 
 
-        # Make a map with a stoneblock border and filled with grass
+        # Make a map filled with grass
         game_map = []
-        inner_width = width-2
         for i in range(height):
-            if i == 0 or i == height-1:
-                # On the boundaries
-                game_map.append(["Block"] * width)
-            else:
-                row = ["Block"] + (["GrassBlock"] * inner_width) + ["Block"]
-                game_map.append(row)
-        
+            row = (["GrassBlock"] * width)
+            game_map.append(row)
+        water_row = (["WaterBlock"] * width)
+        game_map[4] = water_row
+
         self.base_board = game_map
         self.content_layer = []
         row = [ None ] * width
