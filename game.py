@@ -112,7 +112,7 @@ class Chest(GameElement):
 
 def initialize():
     """Put game initialization code here"""
-    
+
     rock_positions = [
         (7, 0)
     ]
@@ -126,7 +126,7 @@ def initialize():
         rocks.append(rock)
 
     trees = []
-    
+
     tree_positions = [
         (3, 4),
         (5, 4),
