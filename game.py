@@ -49,18 +49,33 @@ class Dragon(GameElement):
     SOLID = True
 
     def interact(self, player):
-        # asks player what she wants
-        # burns player to crisp if player has nothing to give or tries to fight
-        # flies away if player hands a gem over
-        pass
+        have_gem = False
+        for item in player.inventory:
+            if type(item) == Gem:
+                have_gem = True
+        if have_gem:
+            GAME_BOARD.draw_msg("The dragon spies the shiny bauble you are carrying, seizes it from you and flies away.")
+            GAME_BOARD.del_el(self.x, self.y)
+        else:
+            GAME_BOARD.draw_msg("Dragon: Who are you to talk to me, human?? Bring me something valuable... and maybe I'll let you pass.")
 
 class Boy(GameElement):
     IMAGE = "Boy"
     SOLID = True
 
     def interact(self, player):
-        # gives player her quest
-        pass
+        have_star = False
+        for item in player.inventory:
+            if item == "Star":
+                have_star = True
+        if have_star:
+            GAME_BOARD.draw_msg("Helpless boy: Oh, brave adventuress, you've saved me from a life of misery! I will forever be indebted to you!")
+            heart = Heart()
+            GAME_BOARD.register(heart)
+            GAME_BOARD.set_el(7, 8, heart)
+        else:
+            GAME_BOARD.draw_msg("Helpless boy: Ohhh, what should I do???")
+
 
 class Obstacle(GameElement):
     SOLID = True
@@ -74,18 +89,13 @@ class Invisible(Obstacle):
             boat = Boat()
             GAME_BOARD.register(boat)
             GAME_BOARD.set_el(self.x, self.y, boat)
+            GAME_BOARD.draw_msg("You built a cool little boat with the wood you gathered!")
             player.inventory["pile of wood"] = 0
         elif player.inventory.get("pile of wood") > 0:
             GAME_BOARD.draw_msg("You don't have enough wood yet!")
         else:
-            GAME_BOARD.draw_msg("You need a boat to cross the river. Chop down some trees to get wood.")
-"""
-class Push_Wall(Item):
-    IMAGE = "DirtBlock"
-    
-    def interact(self, player):
-        pass
-"""
+            GAME_BOARD.draw_msg("You need a way to cross the river. Think!")
+
 class Wall(Obstacle):
     IMAGE = "Wall"
 
@@ -111,12 +121,12 @@ class Tall_Tree(Tree):
             if type(item) == Axe:
                 have_axe = True
         if have_axe:
-            GAME_BOARD.draw_msg("You have an axe! Hit space to chop down this tree.")
+            GAME_BOARD.draw_msg("You have an axe! Hit space to chop.")
             player.inventory["pile of wood"] = player.inventory.get("pile of wood", 0) + 1
             GAME_BOARD.draw_msg("You chopped down this tree and got some wood!")
             GAME_BOARD.del_el(self.x, self.y)
         else:
-            GAME_BOARD.draw_msg("If you acquire an axe, you can chop down this tree.")
+            GAME_BOARD.draw_msg("If you have an axe, you can chop down this tree.")
     
 
 class Boat(GameElement):
@@ -130,9 +140,24 @@ class Item(GameElement):
         GAME_BOARD.draw_msg("You just picked up a %s! You have %d items!" % (self.name, len(player.inventory)))
         GAME_BOARD.del_el(self.x, self.y)
 
+class Dirt_Wall(GameElement):
+    IMAGE = "DirtBlock"
+    SOLID = False
+    
+    def interact(self, player):
+        pass
+
 class Gem(Item):
-    name = "Orange Gem"
-    IMAGE = "OrangeGem"
+    name = "Green Gem"
+    IMAGE = "GreenGem"
+
+class Star(Item):
+    name = "Star"
+    IMAGE = "Star"
+
+class Heart(Item):
+    name = "Heart"
+    IMAGE = "Heart"
 
 class Key(Item):
     name = "Key"
@@ -143,10 +168,23 @@ class Axe(Item):
     IMAGE = "Axe"
 
 class Chest(GameElement):
+    CLOSED_IMAGE = pyglet.resource.image("Chest Closed.png")
+    CLOSED_SPRITE = pyglet.sprite.Sprite(CLOSED_IMAGE)
+    OPEN_IMAGE = pyglet.resource.image("Chest Open.png")
+    OPEN_SPRITE = pyglet.sprite.Sprite(OPEN_IMAGE)
     IMAGE = "ChestClosed"
     SOLID = True
-    contents = choice(["Blue Gem", "Green Gem", "Orange Gem", "Heart"])
+    contents = choice(["Star"])
     chest_closed = True
+    timer = 0
+
+
+    def update(self, dt):
+        self.timer += dt
+        if self.timer > 2:
+            self.sprite = Chest.CLOSED_SPRITE
+        self.timer = 0
+
 
     def interact(self, player):
         if self.chest_closed:
@@ -155,25 +193,25 @@ class Chest(GameElement):
                 if type(item) == Key:
                     have_key = True
             if have_key:
+                self.sprite = Chest.OPEN_SPRITE
                 player.inventory[self.contents] = player.inventory.get(self.contents, 0) + 1
-                GAME_BOARD.draw_msg("You found a %s in the chest! You have %d items!" % (self.contents, len(player.inventory)))
-                
-                for item in player.inventory:
-                    if type(item) == Key:
-                        player.inventory.remove(item)
-    #            IMAGE = "ChestOpen"
-    #            GAME_BOARD.del_el(self.x,self.y)
-    #            GAME_BOARD.set_el(self.x, self.y, self)
+                GAME_BOARD.draw_msg("You found a %s in the chest!" % self.contents)
+                star = Star()
+                GAME_BOARD.register(star)
+                GAME_BOARD.set_el(11, 8, star)
                 self.chest_closed = False
             else:
                 GAME_BOARD.draw_msg("You need a key to open this chest.")
         else:
             GAME_BOARD.draw_msg("You have emptied the chest.")
 
+
 ####   End class definitions    ####
 
 def initialize():
     """Put game initialization code here"""
+
+    GAME_BOARD.draw_msg("Helpless boy: I'm in trouble! I've lost the key to my master's treasure! Please help me get it back!" )
 
     global PLAYER
     PLAYER = Character()
@@ -228,8 +266,6 @@ def initialize():
     wall_positions = [
         (2, 0),
         (2, 1),
-        (3, 2),
-        (4, 2),
         (4, 0),
         (5, 0),
         (5, 1)
@@ -242,6 +278,19 @@ def initialize():
         GAME_BOARD.register(wall)
         GAME_BOARD.set_el(pos[0], pos[1], wall)
         walls.append(wall)
+
+    dirt_wall_positions = [
+        (3, 2),
+        (4, 2)
+    ]
+
+    dirt_walls = []
+
+    for pos in dirt_wall_positions:
+        dirt_wall = Dirt_Wall()
+        GAME_BOARD.register(dirt_wall)
+        GAME_BOARD.set_el(pos[0], pos[1], dirt_wall)
+        walls.append(dirt_wall)
 
     tall_tree_positions = [
         (0, 9),
@@ -310,8 +359,7 @@ def keyboard_handler():
     elif KEYBOARD[key.RIGHT]:
         direction = "right"
         
-
-    
+   
     if direction:
         next_location = PLAYER.next_pos(direction)
         next_x = next_location[0]
@@ -319,10 +367,33 @@ def keyboard_handler():
 
         existing_el = GAME_BOARD.get_el(next_x, next_y)
         if type(existing_el) == Boat:
-            GAME_BOARD.del_el(PLAYER.x, PLAYER.y)
-            GAME_BOARD.set_el(next_x, next_y, existing_el)
-            GAME_BOARD.set_el(next_x, next_y - 1, PLAYER)
-
+            if PLAYER.y == 5:
+                GAME_BOARD.del_el(PLAYER.x, PLAYER.y)
+                GAME_BOARD.set_el(next_x, next_y, existing_el)
+                GAME_BOARD.set_el(next_x, next_y-1, PLAYER)
+            else:
+                GAME_BOARD.del_el(PLAYER.x, PLAYER.y)
+                GAME_BOARD.set_el(next_x, next_y, existing_el)
+                GAME_BOARD.set_el(next_x, next_y+1, PLAYER)
+        elif type(existing_el) == Dirt_Wall:
+            if direction == "up":
+                if GAME_BOARD.get_el(next_x, next_y - 1) == None:
+                    GAME_BOARD.del_el(next_x, next_y)
+                    GAME_BOARD.set_el(next_x, next_y - 1, existing_el)
+                    GAME_BOARD.del_el(PLAYER.x, PLAYER.y)
+                    GAME_BOARD.set_el(next_x, next_y, PLAYER)
+            elif direction == "right":
+                if GAME_BOARD.get_el(next_x + 1, next_y) == None:
+                    GAME_BOARD.del_el(next_x, next_y)
+                    GAME_BOARD.set_el(next_x + 1, next_y, existing_el)
+                    GAME_BOARD.del_el(PLAYER.x, PLAYER.y)
+                    GAME_BOARD.set_el(next_x, next_y, PLAYER)
+            elif direction == "left":
+                if GAME_BOARD.get_el(next_x - 1, next_y) == None:
+                    GAME_BOARD.del_el(next_x, next_y)
+                    GAME_BOARD.set_el(next_x - 1, next_y, existing_el)
+                    GAME_BOARD.del_el(PLAYER.x, PLAYER.y)
+                    GAME_BOARD.set_el(next_x, next_y, PLAYER)
         elif existing_el:
             existing_el.interact(PLAYER)
             if not existing_el.SOLID:
