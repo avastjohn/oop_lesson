@@ -74,7 +74,18 @@ class Invisible(Obstacle):
             boat = Boat()
             GAME_BOARD.register(boat)
             GAME_BOARD.set_el(self.x, self.y, boat)
-
+            player.inventory["pile of wood"] = 0
+        elif player.inventory.get("pile of wood") > 0:
+            GAME_BOARD.draw_msg("You don't have enough wood yet!")
+        else:
+            GAME_BOARD.draw_msg("You need a boat to cross the river. Chop down some trees to get wood.")
+"""
+class Push_Wall(Item):
+    IMAGE = "DirtBlock"
+    
+    def interact(self, player):
+        pass
+"""
 class Wall(Obstacle):
     IMAGE = "Wall"
 
@@ -86,6 +97,10 @@ class Tree(GameElement):
 
 class Ugly_Tree(Tree):
     IMAGE = "UglyTree"
+
+    def interact(self, player):
+        GAME_BOARD.draw_msg("This is just a bush and can't be chopped down.")
+
 
 class Tall_Tree(Tree):
     IMAGE = "TallTree"
@@ -303,7 +318,12 @@ def keyboard_handler():
         next_y = next_location[1]
 
         existing_el = GAME_BOARD.get_el(next_x, next_y)
-        if existing_el:
+        if type(existing_el) == Boat:
+            GAME_BOARD.del_el(PLAYER.x, PLAYER.y)
+            GAME_BOARD.set_el(next_x, next_y, existing_el)
+            GAME_BOARD.set_el(next_x, next_y - 1, PLAYER)
+
+        elif existing_el:
             existing_el.interact(PLAYER)
             if not existing_el.SOLID:
                 GAME_BOARD.del_el(PLAYER.x, PLAYER.y)
