@@ -12,8 +12,8 @@ KEYBOARD = None
 PLAYER = None
 ######################
 
-GAME_WIDTH = 8
-GAME_HEIGHT = 8
+GAME_WIDTH = 12
+GAME_HEIGHT = 10
 
 
 
@@ -23,7 +23,7 @@ class Character(GameElement):
 
     def __init__(self):
         GameElement.__init__(self)
-        self.inventory = []
+        self.inventory = {}
 
     def next_pos(self, direction):
         if direction == "up":
@@ -44,8 +44,36 @@ class Character(GameElement):
             return (self.x, self.y)
         return None
 
+class Dragon(GameElement):
+    IMAGE = "Dragon"
+    SOLID = True
+
+    def interact(self, player):
+        # asks player what she wants
+        # burns player to crisp if player has nothing to give or tries to fight
+        # flies away if player hands a gem over
+        pass
+
+class Boy(GameElement):
+    IMAGE = "Boy"
+    SOLID = True
+
+    def interact(self, player):
+        # gives player her quest
+        pass
+
 class Obstacle(GameElement):
     SOLID = True
+
+class Invisible(Obstacle):
+    IMAGE = "Invisible"
+
+    def interact(self, player):
+        if player.inventory.get("pile of wood") >= 3:
+            GAME_BOARD.del_el(self.x, self.y)
+            boat = Boat()
+            GAME_BOARD.register(boat)
+            GAME_BOARD.set_el(self.x, self.y, boat)
 
 class Wall(Obstacle):
     IMAGE = "Wall"
@@ -54,23 +82,42 @@ class Rock(Obstacle):
     IMAGE = "Rock"
 
 class Tree(GameElement):
-    IMAGE = "TallTree"
     SOLID = True
 
-    def interact(self, player):
-        pass
+class Ugly_Tree(Tree):
+    IMAGE = "UglyTree"
 
+class Tall_Tree(Tree):
+    IMAGE = "TallTree"
+
+    def interact(self, player):
+        have_axe = False
+        for item in player.inventory:
+            if type(item) == Axe:
+                have_axe = True
+        if have_axe:
+            GAME_BOARD.draw_msg("You have an axe! Hit space to chop down this tree.")
+            player.inventory["pile of wood"] = player.inventory.get("pile of wood", 0) + 1
+            GAME_BOARD.draw_msg("You chopped down this tree and got some wood!")
+            GAME_BOARD.del_el(self.x, self.y)
+        else:
+            GAME_BOARD.draw_msg("If you acquire an axe, you can chop down this tree.")
+    
+
+class Boat(GameElement):
+    IMAGE = "Boat"
+          
 class Item(GameElement):
     SOLID = False
 
     def interact(self, player):
-        player.inventory.append(self)
+        player.inventory[self] = player.inventory.get(self, 0) + 1
         GAME_BOARD.draw_msg("You just picked up a %s! You have %d items!" % (self.name, len(player.inventory)))
         GAME_BOARD.del_el(self.x, self.y)
 
 class Gem(Item):
-    name = "Blue Gem"
-    IMAGE = "BlueGem"
+    name = "Orange Gem"
+    IMAGE = "OrangeGem"
 
 class Key(Item):
     name = "Key"
@@ -78,7 +125,7 @@ class Key(Item):
 
 class Axe(Item):
     name = "Axe"
-    IMAGE = "Star"
+    IMAGE = "Axe"
 
 class Chest(GameElement):
     IMAGE = "ChestClosed"
@@ -93,7 +140,7 @@ class Chest(GameElement):
                 if type(item) == Key:
                     have_key = True
             if have_key:
-                player.inventory.append(self.contents)
+                player.inventory[self.contents] = player.inventory.get(self.contents, 0) + 1
                 GAME_BOARD.draw_msg("You found a %s in the chest! You have %d items!" % (self.contents, len(player.inventory)))
                 
                 for item in player.inventory:
@@ -113,8 +160,46 @@ class Chest(GameElement):
 def initialize():
     """Put game initialization code here"""
 
+    global PLAYER
+    PLAYER = Character()
+    GAME_BOARD.register(PLAYER)
+    GAME_BOARD.set_el(6, 9, PLAYER)
+
+    HAPLESS_BOY = Boy()
+    GAME_BOARD.register(HAPLESS_BOY)
+    GAME_BOARD.set_el(7, 9, HAPLESS_BOY)
+
+    DRAGON = Dragon()
+    GAME_BOARD.register(DRAGON)
+    GAME_BOARD.set_el(3, 1, DRAGON)
+
+    invisible_positions = [
+        (0, 4),
+        (1, 4),
+        (2, 4),
+        (3, 4),
+        (4, 4),
+        (5, 4),
+        (6, 4),
+        (7, 4),
+        (8, 4),
+        (9, 4),
+        (10, 4),
+        (11, 4)
+    ]
+
+    invisibles = []
+    for pos in invisible_positions:
+        invisible = Invisible()
+        GAME_BOARD.register(invisible)
+        GAME_BOARD.set_el(pos[0], pos[1], invisible)
+        invisibles.append(invisible)
+
     rock_positions = [
-        (7, 0)
+        (2, 9),
+        (7, 1),
+        (9, 7),
+        (11, 0),
     ]
 
     rocks = []
@@ -125,51 +210,81 @@ def initialize():
         GAME_BOARD.set_el(pos[0], pos[1], rock)
         rocks.append(rock)
 
-    trees = []
-
-    tree_positions = [
-        (3, 4),
-        (5, 4),
-        (6, 5),
-        (5, 7)
+    wall_positions = [
+        (2, 0),
+        (2, 1),
+        (3, 2),
+        (4, 2),
+        (4, 0),
+        (5, 0),
+        (5, 1)
     ]
 
-    for pos in tree_positions:
-        tree = Tree()
+    walls = []
+
+    for pos in wall_positions:
+        wall = Wall()
+        GAME_BOARD.register(wall)
+        GAME_BOARD.set_el(pos[0], pos[1], wall)
+        walls.append(wall)
+
+    tall_tree_positions = [
+        (0, 9),
+        (1, 5),
+        (1, 0),
+        (5, 7),
+        (6, 0),
+        (6, 5),
+        (8, 1),
+        (10, 3),
+        (10, 6),
+    ]
+
+    tall_trees = []
+
+    for pos in tall_tree_positions:
+        tree = Tall_Tree()
         GAME_BOARD.register(tree)
         GAME_BOARD.set_el(pos[0], pos[1], tree)
-        trees.append(tree)
+        tall_trees.append(tree)
 
+    ugly_tree_positions = [
+        (0, 2),
+        (3, 8),
+        (7, 3),
+        (8, 6),
+        (10, 8),
+        (10, 0)
+    ]
 
-    global PLAYER
-    PLAYER = Character()
-    GAME_BOARD.register(PLAYER)
-    GAME_BOARD.set_el(3, 7, PLAYER)
+    ugly_trees = []
+
+    for pos in ugly_tree_positions:
+        tree = Ugly_Tree()
+        GAME_BOARD.register(tree)
+        GAME_BOARD.set_el(pos[0], pos[1], tree)
+        ugly_trees.append(tree)
 
     gem = Gem()
     GAME_BOARD.register(gem)
-    GAME_BOARD.set_el(4, 5, gem)
+    GAME_BOARD.set_el(4, 7, gem)
 
     key = Key()
     GAME_BOARD.register(key)
-    GAME_BOARD.set_el(0, 0, key)
+    GAME_BOARD.set_el(3, 0, key)
 
     axe = Axe()
     GAME_BOARD.register(axe)
     GAME_BOARD.set_el(1, 7, axe)
 
-#    wall = Wall()
-#    GAME_BOARD.register(wall)
-#    GAME_BOARD.set_el(5, 6, wall)
-
     chest = Chest()
     GAME_BOARD.register(chest)
-    GAME_BOARD.set_el(7, 7, chest)
-
-#    GAME_BOARD.draw_msg("Jia Yi and Ava are amazing!")
+    GAME_BOARD.set_el(11, 9, chest)
 
 def keyboard_handler():
     direction = None
+    chopped = False
+    
 
     if KEYBOARD[key.UP]:
         direction = "up"
@@ -179,6 +294,7 @@ def keyboard_handler():
         direction = "left"
     elif KEYBOARD[key.RIGHT]:
         direction = "right"
+        
 
     
     if direction:

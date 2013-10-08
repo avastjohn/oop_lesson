@@ -4,8 +4,8 @@ import pyglet
 from pyglet.window import key
 from core import GameElement
 
-SCREEN_X = 800
-SCREEN_Y = 850
+SCREEN_X = 1200
+SCREEN_Y = 1100
 
 game_window = pyglet.window.Window(SCREEN_X, SCREEN_Y)
 
@@ -21,6 +21,7 @@ TILE_HEIGHT = 0
 
 def setup_images():
     filenames = {
+            "Invisible": "Invisible Block.png",
             "Wall": "Wall Block.png",
             "Block": "Plain Block.png",
             "BrownBlock": "Brown Block.png",
@@ -48,6 +49,16 @@ def setup_images():
             "Heart": "Heart.png",
             "Star": "Star.png",
             "Key": "Key.png",
+            "Axe": "Axe.png",
+            "Axe2": "Axe2.png",
+            "Boat": "Boat.png",
+            "DragonBoat": "Dragon Boat.png",
+            "DragonSailboat": "Dragon Sailboat.png",
+            "Dragon": "Dragon.png",
+            "Dragon2": "Dragon2.png",
+            "Dragon3": "Dragon3.png",
+            "Dragon4": "Dragon4.png",
+            "Dragon5": "Dragon5.png",
             "Boy": "Character Boy.png",
             "Cat": "Character Cat Girl.png",
             "Horns": "Character Horn Girl.png",
@@ -80,13 +91,13 @@ class Board(object):
         self.offset_y = -SCREEN_Y/2 + board_height_px/2 + TILE_HEIGHT/4
 
 
-        # Make a map with a stoneblock border and filled with grass
+        # Make a map filled with grass
         game_map = []
         for i in range(height):
             row = (["GrassBlock"] * width)
             game_map.append(row)
         water_row = (["WaterBlock"] * width)
-        game_map[3] = water_row
+        game_map[4] = water_row
 
         self.base_board = game_map
         self.content_layer = []
