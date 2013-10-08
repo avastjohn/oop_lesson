@@ -53,6 +53,13 @@ class Wall(Obstacle):
 class Rock(Obstacle):
     IMAGE = "Rock"
 
+class Tree(GameElement):
+    IMAGE = "TallTree"
+    SOLID = True
+
+    def interact(self, player):
+        pass
+
 class Item(GameElement):
     SOLID = False
 
@@ -69,20 +76,37 @@ class Key(Item):
     name = "Key"
     IMAGE = "Key"
 
+class Axe(Item):
+    name = "Axe"
+    IMAGE = "Star"
+
 class Chest(GameElement):
-    IMAGE = "Chest"
+    IMAGE = "ChestClosed"
     SOLID = True
     contents = choice(["Blue Gem", "Green Gem", "Orange Gem", "Heart"])
+    chest_closed = True
 
     def interact(self, player):
-        for item in player.inventory:
-            if type(item) == Key:
+        if self.chest_closed:
+            have_key = False
+            for item in player.inventory:
+                if type(item) == Key:
+                    have_key = True
+            if have_key:
                 player.inventory.append(self.contents)
                 GAME_BOARD.draw_msg("You found a %s in the chest! You have %d items!" % (self.contents, len(player.inventory)))
-                break
+                
+                for item in player.inventory:
+                    if type(item) == Key:
+                        player.inventory.remove(item)
+    #            IMAGE = "ChestOpen"
+    #            GAME_BOARD.del_el(self.x,self.y)
+    #            GAME_BOARD.set_el(self.x, self.y, self)
+                self.chest_closed = False
             else:
                 GAME_BOARD.draw_msg("You need a key to open this chest.")
-
+        else:
+            GAME_BOARD.draw_msg("You have emptied the chest.")
 
 ####   End class definitions    ####
 
@@ -90,10 +114,7 @@ def initialize():
     """Put game initialization code here"""
     
     rock_positions = [
-        (2, 1),
-        (1, 2),
-        (4, 2),
-        (2, 4)
+        (7, 0)
     ]
 
     rocks = []
@@ -104,29 +125,46 @@ def initialize():
         GAME_BOARD.set_el(pos[0], pos[1], rock)
         rocks.append(rock)
 
-    key_pos = (randrange(0, GAME_WIDTH), randrange(0, GAME_HEIGHT))
+    trees = []
+    
+    tree_positions = [
+        (3, 4),
+        (5, 4),
+        (6, 5),
+        (5, 7)
+    ]
+
+    for pos in tree_positions:
+        tree = Tree()
+        GAME_BOARD.register(tree)
+        GAME_BOARD.set_el(pos[0], pos[1], tree)
+        trees.append(tree)
 
 
     global PLAYER
     PLAYER = Character()
     GAME_BOARD.register(PLAYER)
-    GAME_BOARD.set_el(2, 2, PLAYER)
+    GAME_BOARD.set_el(3, 7, PLAYER)
 
     gem = Gem()
     GAME_BOARD.register(gem)
-    GAME_BOARD.set_el(5, 5, gem)
+    GAME_BOARD.set_el(4, 5, gem)
 
     key = Key()
     GAME_BOARD.register(key)
-    GAME_BOARD.set_el(key_pos[0], key_pos[1], key)
+    GAME_BOARD.set_el(0, 0, key)
 
-    wall = Wall()
-    GAME_BOARD.register(wall)
-    GAME_BOARD.set_el(5, 6, wall)
+    axe = Axe()
+    GAME_BOARD.register(axe)
+    GAME_BOARD.set_el(1, 7, axe)
+
+#    wall = Wall()
+#    GAME_BOARD.register(wall)
+#    GAME_BOARD.set_el(5, 6, wall)
 
     chest = Chest()
     GAME_BOARD.register(chest)
-    GAME_BOARD.set_el(6, 7, chest)
+    GAME_BOARD.set_el(7, 7, chest)
 
 #    GAME_BOARD.draw_msg("Jia Yi and Ava are amazing!")
 
