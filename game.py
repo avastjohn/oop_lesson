@@ -47,6 +47,8 @@ class Character(GameElement):
 class Dragon(GameElement):
     IMAGE = "Dragon"
     SOLID = True
+    timer = 0
+    fly_away = False
 
     def interact(self, player):
         have_gem = False
@@ -56,8 +58,21 @@ class Dragon(GameElement):
         if have_gem:
             GAME_BOARD.draw_msg("The dragon spies the shiny bauble you are carrying, seizes it from you and flies away.")
             GAME_BOARD.del_el(self.x, self.y)
+            self.fly_away = True
         else:
             GAME_BOARD.draw_msg("Dragon: Who are you to talk to me, human?? Bring me something valuable... and maybe I'll let you pass.")
+
+    def update(self, dt):
+        self.timer += dt
+        if self.fly_away:
+            if self.timer > 1:
+                GAME_BOARD.del_el(self.x, self.y)
+                if self.x < 11:
+                    self.x += 1
+                    GAME_BOARD.set_el(self.x, self.y, self)
+                    self.timer = 0
+
+
 
 class Boy(GameElement):
     IMAGE = "Boy"
@@ -250,7 +265,7 @@ def initialize():
 
     rock_positions = [
         (2, 9),
-        (7, 1),
+        (7, 2),
         (9, 7),
         (11, 0),
     ]
@@ -299,7 +314,7 @@ def initialize():
         (5, 7),
         (6, 0),
         (6, 5),
-        (8, 1),
+        (8, 2),
         (10, 3),
         (10, 6),
     ]
